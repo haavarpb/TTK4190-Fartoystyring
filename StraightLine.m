@@ -28,19 +28,26 @@ x_dot = @(psi, U) [U*cos(psi)];
 y_dot = @(psi, U) [U*sin(psi)];
 
 %Storage
-table = zeros(N+1, 2);        % memory allocation
+table = zeros(N+1, 4);        % memory allocation
 
 %Cross track error
 % y = K*U*(T*exp(-t/T)+t-T)*delta+U*(T*exp(-t/T)+t-T)*bias;
+
+% Position init
+x = x0;
+y = y0;
 
 for i = 1:N+1
     
     t = (i-1)*h; 
     
     %Simulation
+    psi = k*(1-exp(-t/T))*delta+bias*(1-exp(-t/T));
     
+    %%%%%%%%TODO integrere opp y_dot og x_dot
     
-    table(i, :) = [x, y]
+    table(i, :) = [x, y, x_dot(psi), y_dot(psi)];
+    
     
     %Integration
     y_int = trapz(table(:, 2)); % Integrerer opp lagret y

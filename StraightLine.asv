@@ -30,12 +30,15 @@ y_dot = @(psi, U) [U*sin(psi)];
 %Storage
 table = zeros(N+1, 2);        % memory allocation
 
+%Cross track error
+% y = K*U*(T*exp(-t/T)+t-T)*delta+U*(T*exp(-t/T)+t-T)*bias;
+
 for i = 1:N+1
     
     t = (i-1)*h; 
     
     %Simulation
-    y = K*U*(T*exp(-t/T)+t-T)*delta+U*(T*exp(-t/T)+t-T)*bias;
+     = k*(1-exp(-t/T))*delta+
     
     table(i, :) = [x, y]
     
