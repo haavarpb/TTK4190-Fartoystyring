@@ -40,15 +40,23 @@ phi = -5*deg2rad;            % initial Euler angles
 theta = 10*deg2rad;
 psi = -20*deg2rad;
 
+
+
+
 q = euler2q(phi,theta,psi);   % transform initial Euler angles to q
+
+%For Non-zero constant reference signal
+% phi_ref = 10*deg2rad;
+% phi_error = phi_ref-phi;
+% q = euler2q(phi_error,theta,psi);   % transform initial Euler angles to q
 
 w = [0 0 0]';                 % initial angular rates
 
-table = zeros(N+1,17);        % memory allocation
+table = zeros(N+1,14);        % memory allocation
 
 % Control parameters
-K_d = eye(3)*400;
-k_p = 20;
+K_d = eye(3)*40;
+k_p = 2;
 
 % Tracking param
 N_array = 1:(N + 1);
@@ -64,22 +72,22 @@ T_f2b = @(phi, theta, psi) [1 0 -sin(theta); 0 cos(phi) cos(theta)*sin(phi); 0 -
 
 %% FOR-END LOOP
 for i = 1:N+1
-    q_d = euler2q(0, theta_d(i), psi_d(i)); 
-    q_tilde = quatmultiply(quatconj(q_d'), q')';
-    e_tilde = q_tilde(2:end);
-   
-    w_d = T_f2b(phi_d(i), theta_d(i), psi_d(i))*[phi_dot_d(i) theta_dot_d(i) psi_dot_d(i)]';
-    w_tilde = w - w_d;
+%     q_d = euler2q(0, theta_d(i), psi_d(i)); 
+%     q_tilde = quatmultiply(quatconj(q_d'), q')';
+%     e_tilde = q_tilde(2:end);
+%    
+%     w_d = T_f2b(phi_d(i), theta_d(i), psi_d(i))*[phi_dot_d(i) theta_dot_d(i) psi_dot_d(i)]';
+%     w_tilde = w - w_d;
     t = (i-1)*h;                  % time
-    tau = - K_d*w_tilde - k_p*e_tilde;       % control law
-
+    %tau = - K_d*w_tilde - k_p*e_tilde;       % control law
+    tau = - K_d*w - k_p*q(2:end,1); 
     [phi,theta,psi] = q2euler(q); % transform q to Euler angles
     [J,J1,J2] = quatern(q);       % kinematic transformation matrices
 
     q_dot = J2*w;                        % quaternion kinematics
     w_dot = I_inv*(Smtrx(I*w)*w + tau);  % rigid-body kinetics
 
-    table(i,:) = [t q' phi theta psi w' tau' w_tilde'];  % store data in table
+    table(i,:) = [t q' phi theta psi w' tau'];  % store data in table
 
     q = q + h*q_dot;	             % Euler integration
     w = w + h*w_dot;
@@ -95,7 +103,7 @@ theta   = rad2deg*table(:,7);
 psi     = rad2deg*table(:,8);
 w       = rad2deg*table(:,9:11);  
 tau     = table(:,12:14);
-w_tilde     = table(:, 15:17);
+% w_tilde     = table(:, 15:17);
 
 %Calcuklating error
 phi_err = phi; %Since phi_d = 0
@@ -114,17 +122,17 @@ title('Euler angles');
 xlabel('time [s]'); 
 ylabel('angle [deg]');
 
-figure (999); clf;
-hold on;
-plot(t, phi_err', 'b');
-plot(t, theta_err', 'r');
-plot(t, psi_err', 'g');
-hold off;
-grid on;
-legend('\phi', '\theta', '\psi');
-title('Error in euler angles');
-xlabel('time [s]'); 
-ylabel('angle [deg]');
+% figure (999); clf;
+% hold on;
+% plot(t, phi_err', 'b');
+% plot(t, theta_err', 'r');
+% plot(t, psi_err', 'g');
+% hold off;
+% grid on;
+% legend('\phi', '\theta', '\psi');
+% title('Error in euler angles');
+% xlabel('time [s]'); 
+% ylabel('angle [deg]');
 
 figure (2); clf;
 hold on;
@@ -138,17 +146,17 @@ title('Angular velocities');
 xlabel('time [s]'); 
 ylabel('angular rate [deg/s]');
 
-figure (161); clf;
-hold on;
-plot(t, w_tilde(:,1), 'b');
-plot(t, w_tilde(:,2), 'r');
-plot(t, w_tilde(:,3), 'g');
-hold off;
-grid on;
-legend('x', 'y', 'z');
-title('Angular velocities error');
-xlabel('time [s]'); 
-ylabel('angular rate [deg/s]');
+% figure (161); clf;
+% hold on;
+% plot(t, w_tilde(:,1), 'b');
+% plot(t, w_tilde(:,2), 'r');
+% plot(t, w_tilde(:,3), 'g');
+% hold off;
+% grid on;
+% legend('x', 'y', 'z');
+% title('Angular velocities error');
+% xlabel('time [s]'); 
+% ylabel('angular rate [deg/s]');
 
 figure (3); clf;
 hold on;
@@ -162,14 +170,14 @@ title('Control input');
 xlabel('time [s]'); 
 ylabel('input [Nm]');
 
-figure (4); clf;
-hold on;
-plot(t, rad2deg*theta_d', 'r');
-plot(t, rad2deg*psi_d', 'g');
-plot(t, rad2deg*phi_d', 'b');
-hold off;
-grid on;
-legend('\theta', '\psi', '\phi');
-title('Desired trajectory in euler angles');
-xlabel('time [s]'); 
-ylabel('angle [deg]');
+% figure (4); clf;
+% hold on;
+% plot(t, rad2deg*theta_d', 'r');
+% plot(t, rad2deg*psi_d', 'g');
+% plot(t, rad2deg*phi_d', 'b');
+% hold off;
+% grid on;
+% legend('\theta', '\psi', '\phi');
+% title('Desired trajectory in euler angles');
+% xlabel('time [s]'); 
+% ylabel('angle [deg]');
